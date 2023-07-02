@@ -5,124 +5,136 @@ window.requestAnimationFrame =
   window.msRequestAnimationFrame ||
   function(cb) {setTimeout(cb, 17);};
 
-var canvas = document.getElementById( "canvas" ),
-    ctx = canvas.getContext( "2d" ),
-    NUM = 250,
-    LIFEMAX = 500,
-    particles = [],
-    W = canvas.clientWidth,
-    H = canvas.clientHeight
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const NUM = 250;
+  const LIFEMAX = 400;
+  const particles = [];
+  let W = canvas.clientWidth;
+  let H = canvas.clientHeight;
 
-canvas.width = canvas.clientWidth;
-canvas.height = canvas.clientHeight;
-
-function resizeCanvas() {
-  // canvas要素のクライアントサイズを取得
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  // ページをリロード
-  location.reload();
-}
-
-function Particle(ctx, x, y) {
-  this.ctx = ctx;
-  this.initialize(x, y);
-}
-
-Particle.prototype.initialize = function(x, y){
-  this.x = x || 0;
-  this.y = y || 0;
-  this.radius = 250;
-  this.startLife = Math.ceil( LIFEMAX * Math.random() );
-  this.life = this.startLife;
-
-  // 速度用のオブジェクトv
-  this.v = {
-    x: Math.random()*10-5, // x方向の速度
-    y: Math.random()*10-5 // y方向の速度
-  };
-  // 描画色オブジェクト
-  this.color = {
-    r: Math.floor(Math.random()*255),
-    g: Math.floor(Math.random()*255),
-    b: Math.floor(Math.random()*255),
-    a: 1
-  };
-}
-
-Particle.prototype.render = function(){
-  this.updateParams();
-  this.updatePosition();
-  this.wrapPosition(); // 範囲外に消えた点を範囲内に戻す
-  this.draw();
-}
-
-Particle.prototype.draw = function(){
-  // 4. 描画
-  ctx = this.ctx;
-  ctx.beginPath();
-  ctx.fillStyle = this.gradient();
-  ctx.arc( this.x, this.y, this.radius, Math.PI*2, false ); // 位置指定
-  ctx.fill();
-  ctx.closePath();
-}
-
-Particle.prototype.updateParams = function() {
-  var ratio = this.life / this.startLife;
-  this.color.a = 1 - ratio;
-  this.radius = 30 / ratio
-  if(this.radius > 300 ) this.radius = 300;
-  this.life -= 1;
-  if(this.life === 0 ) this.initialize();
-}
-
-Particle.prototype.updatePosition = function() {
-  // 3. 位置をずらす
-  this.x += this.v.x;
-  this.y += this.v.y;
-}
-
-Particle.prototype.wrapPosition = function(){
-  if(this.x < 0) this.x = W;
-  if(this.x > W) this.x = 0;
-  if(this.y < 0) this.y = H;
-  if(this.y > H) this.y = 0;
-}
-
-Particle.prototype.gradient = function(){
-  var col =  this.color.r + ", " + this.color.g + ", " + this.color.b;
-  var g = this.ctx.createRadialGradient( this.x, this.y, 0, this.x, this.y, this.radius);
-  g.addColorStop(0,   "rgba(" + col + ", " +(this.color.a * 1) + ")");
-  g.addColorStop(0.5, "rgba(" + col + ", " +(this.color.a * 0.2) + ")");
-  g.addColorStop(1,   "rgba(" + col + ", " +(this.color.a * 0) + ")");
-  return g
-}
-
-for(var i = 0; i < NUM; i++) {
-  var positionx =  Math.random()*W, // x座標を0-20の間でランダムに
-      positiony =  Math.random()*H; // y座標を0-20の間でランダムに
-  particle = new Particle(ctx, positionx, positiony);
-  particles.push( particle );
-}
-
-// 1.図形を描画
-// 描画サイクルを開始する
-render();
-
-
-function render() {
-  // 2.一度消去
-  // ctx.clearRect(0,0,W,H); // 前回までの描画内容を消去
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  ctx.globalCompositeOperation = "color-dodge";
-
-  particles.forEach(function(e){ e.render(); });
-
-  // 5.一定間隔をおく
-  // requestanimationframeをつかって、ブラウザの更新のタイミングに実行する
-  requestAnimationFrame( render );
-}
-// ウィンドウのリサイズイベントを監視
-window.addEventListener("resize", resizeCanvas);
+  function resizeCanvas() {
+    // canvas要素のクライアントサイズを取得
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+  }
+  
+  class Particle {
+    constructor(x, y) {
+      this.x = x || 0;
+      this.y = y || 0;
+      this.radius = 250;
+      this.startLife = Math.ceil(LIFEMAX * Math.random());
+      this.life = this.startLife;
+      this.v = {
+        x: Math.random() * 10 - 5,
+        y: Math.random() * 10 - 5,
+      };
+      this.color = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255),
+        a: 1,
+      };
+    }
+  
+    render() {
+      this.updateParams();
+      this.updatePosition();
+      this.wrapPosition();
+      this.draw();
+    }
+  
+    draw() {
+      ctx.beginPath();
+      ctx.fillStyle = this.gradient();
+      ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
+      ctx.fill();
+      ctx.closePath();
+    }
+  
+    updateParams() {
+      const ratio = this.life / this.startLife;
+      this.color.a = 1 - ratio;
+      this.radius = 30 / ratio;
+      if (this.radius > 300) this.radius = 300;
+      this.life -= 1;
+      if (this.life === 0) this.initialize();
+    }
+  
+    updatePosition() {
+      this.x += this.v.x;
+      this.y += this.v.y;
+    }
+  
+    wrapPosition() {
+      if (this.x < 0) this.x = W;
+      if (this.x > W) this.x = 0;
+      if (this.y < 0) this.y = H;
+      if (this.y > H) this.y = 0;
+    }
+  
+    gradient() {
+      const col = `${this.color.r}, ${this.color.g}, ${this.color.b}`;
+      const g = ctx.createRadialGradient(
+        this.x,
+        this.y,
+        0,
+        this.x,
+        this.y,
+        this.radius
+      );
+      g.addColorStop(0, `rgba(${col}, ${this.color.a * 1})`);
+      g.addColorStop(0.5, `rgba(${col}, ${this.color.a * 0.2})`);
+      g.addColorStop(1, `rgba(${col}, ${this.color.a * 0})`);
+      return g;
+    }
+  
+    initialize() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.startLife = Math.ceil(LIFEMAX * Math.random());
+      this.life = this.startLife;
+      this.v = {
+        x: Math.random() * 10 - 5,
+        y: Math.random() * 10 - 5,
+      };
+      this.color = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random()
+        * 255),
+        a: 1,
+      };
+    }
+  }
+  
+  for (let i = 0; i < NUM; i++) {
+    const positionX = Math.random() * W;
+    const positionY = Math.random() * H;
+    const particle = new Particle(positionX, positionY);
+    particles.push(particle);
+  }
+  
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = "color-dodge";
+  
+    particles.forEach((particle) => {
+      particle.render();
+    });
+  
+    requestAnimationFrame(render);
+  }
+  
+  // Start the rendering process
+  render();
+  
+  // Resize canvas when the window is resized
+  window.addEventListener("resize", resizeCanvas);
+  
